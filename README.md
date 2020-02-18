@@ -83,3 +83,21 @@ jobs:
       # Access scan results in later steps
       - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 ```
+
+## Development
+
+This action is implemented as a Docker rather than a Javascript action because [that would require committing node_modules to the repository](https://help.github.com/en/actions/building-actions/creating-a-javascript-action#commit-tag-and-push-your-action-to-github).
+
+You can test the action by running it locally like so:
+
+```sh
+docker build -t ecr-scan-image:dev .
+docker run -t \
+  -e INPUT_REPOSITORY=myorg/myapp \
+  -e INPUT_TAG=test-tag \
+  -e INPUT_FAIL_THRESHOLD=critical \
+  -e AWS_ACCESS_KEY_ID=xxx \
+  -e AWS_SECRET_ACCESS_KEY=xxx \
+  -e AWS_REGION=xxx \
+  ecr-scan-image:dev
+```

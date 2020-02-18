@@ -2,15 +2,16 @@ const core = require('@actions/core')
 const AWS = require('aws-sdk')
 
 const getFindings = async (ECR, repository, tag) => {
-  // XXX: We catch all errors and assume they are "no scan results"... but there
-  // could be many reasons for the API call to fail. The catch logic should be
-  // more discriminating in what it swallows.
   return ECR.describeImageScanFindings({
     imageId: {
       imageTag: tag
     },
     repositoryName: repository
-  }).promise().catch(() => null)
+  }).promise().catch(
+    (err) => {
+      if (err.code === 'ScanNotFoundException') { return null }
+      throw err
+    })
 }
 
 const main = async () => {

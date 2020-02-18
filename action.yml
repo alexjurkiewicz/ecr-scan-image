@@ -27,8 +27,8 @@ outputs:
   total:
     description: Total number of vulnerabilities detected.
 runs:
-  using: "node12"
-  main: "index.js"
+  using: "docker"
+  image: "Dockerfile"
 branding:
   icon: "camera"
   color: "orange"
