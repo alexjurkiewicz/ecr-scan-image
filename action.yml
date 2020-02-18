@@ -29,3 +29,6 @@ outputs:
 runs:
   using: "node12"
   main: "index.js"
+branding:
+  icon: "camera"
+  color: "orange"
