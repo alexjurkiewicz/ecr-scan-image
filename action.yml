@@ -1,5 +1,5 @@
-name: ECR Scan Image
-description: Scan an image in ECR and fail if vulnerabilities are found
+name: AWS ECR Scan Docker Image
+description: Scan a Docker image stored in AWS ECR and fail if vulnerabilities are found.
 inputs:
   repository:
     description: ECR repository, eg myorg/myimage.
