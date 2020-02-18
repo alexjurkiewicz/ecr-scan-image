@@ -77,6 +77,15 @@ const main = async () => {
   core.setOutput('informational', informational.toString())
   core.setOutput('unknown', unknown.toString())
   core.setOutput('total', total.toString())
+  console.log('Vulnerabilities found:')
+  console.log(`${critical.toString().padStart(3, ' ')} Critical`)
+  console.log(`${high.toString().padStart(3, ' ')} High`)
+  console.log(`${medium.toString().padStart(3, ' ')} Medium`)
+  console.log(`${low.toString().padStart(3, ' ')} Low`)
+  console.log(`${informational.toString().padStart(3, ' ')} Informational`)
+  console.log(`${unknown.toString().padStart(3, ' ')} Unknown`)
+  console.log('=================')
+  console.log(`${total.toString().padStart(3, ' ')} Total`)
 
   if (
     (failThreshold === 'informational' && total > 0) ||
@@ -85,9 +94,8 @@ const main = async () => {
     (failThreshold === 'high' && critical + high > 0) ||
     (failThreshold === 'critical' && critical > 0)
   ) {
-    throw new Error(`Detected vulnerabilities with severity equal to or greater than the fail_threshold ${failThreshold}. Informational: ${informational} Low: ${low} Medium: ${medium} High: ${high} Critical: ${critical}`)
+    throw new Error(`Detected vulnerabilities with severity equal to or greater than the fail_threshold ${failThreshold}.`)
   }
-  console.log()
 }
 
 (async function () {
