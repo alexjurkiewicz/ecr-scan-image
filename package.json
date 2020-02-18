@@ -1,0 +1,16 @@
+{
+  "name": "ecr-scan-image",
+  "version": "1.0.0",
+  "description": "Github Action to scan an image in ECR and fail if vulnerabilities are found.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@actions/core": "^1.2.2",
+    "aws-sdk": "^2.620.0"
+  }
+}
