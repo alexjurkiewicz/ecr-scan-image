@@ -86,14 +86,15 @@ const main = async () => {
   console.log('=================')
   console.log(`${total.toString().padStart(3, ' ')} Total`)
 
-  if (
-    (failThreshold === 'informational' && total > 0) ||
-    (failThreshold === 'low' && critical + high + medium + low > 0) ||
-    ((failThreshold === 'medium' || failThreshold === '') && critical + high + medium > 0) ||
-    (failThreshold === 'high' && critical + high > 0) ||
-    (failThreshold === 'critical' && critical > 0)
-  ) {
-    throw new Error(`Detected vulnerabilities with severity equal to or greater than the fail_threshold ${failThreshold}.`)
+  const numFailingVulns =
+    failThreshold === 'informational' ? total
+      : failThreshold === 'low' ? critical + high + medium + low
+        : failThreshold === 'medium' ? critical + high + medium
+          : failThreshold === 'high' ? critical + high
+            : /* failThreshold === 'critical' ? */ critical
+
+  if (numFailingVulns > 0) {
+    throw new Error(`Detected ${numFailingVulns} vulnerabilities with severity >= ${failThreshold} (the currently configured fail_threshold).`)
   }
 }
 
