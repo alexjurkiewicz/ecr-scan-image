@@ -11,7 +11,7 @@ Scan an image uploaded to ECR and fail if vulnerabilities are found.
         with:
           repository: myorg/myimage
           tag: v1.2.3
-          fail_threshold: medium
+          fail_threshold: high
 ```
 
 ## Inputs
@@ -20,7 +20,7 @@ Scan an image uploaded to ECR and fail if vulnerabilities are found.
 | ------ | --------- | ----------- |
 | repository | :white_check_mark:  | ECR repository, eg myorg/myimage |
 | tag    | :white_check_mark: | Image tag to scan |
-| fail_threshold | | Fail if any vulnerabilities equal to or over this severity level are detected. Valid values: critical, high, medium, low, informational. Default value is medium. |
+| fail_threshold | | Fail if any vulnerabilities equal to or over this severity level are detected. Valid values: critical, high, medium, low, informational. Default value is high. |
 
 ## Outputs
 

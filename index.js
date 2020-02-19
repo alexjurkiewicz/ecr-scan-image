@@ -18,12 +18,11 @@ const main = async () => {
   core.debug('Entering main')
   const repository = core.getInput('repository', { required: true })
   const tag = core.getInput('tag', { required: true })
-  const failThreshold = core.getInput('fail_threshold')
+  const failThreshold = core.getInput('fail_threshold') || 'high'
   if (
     failThreshold !== 'critical' &&
     failThreshold !== 'high' &&
     failThreshold !== 'medium' &&
-    failThreshold !== '' && // default -- equivalent to medium
     failThreshold !== 'low' &&
     failThreshold !== 'informational'
   ) {
