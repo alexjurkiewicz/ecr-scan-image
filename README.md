@@ -79,14 +79,14 @@ jobs:
         with:
           repository: myorg/myimage
           tag: ${{ steps.docker-build.outputs.tag }}
-          fail_threshold: medium
+          # fail_threshold: medium
       # Access scan results in later steps
       - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 ```
 
 ## Development
 
-This action is implemented as a Docker rather than a Javascript action because [that would require committing node_modules to the repository](https://help.github.com/en/actions/building-actions/creating-a-javascript-action#commit-tag-and-push-your-action-to-github).
+This action is implemented as a Docker rather than a Javascript action because [that would require committing node\_modules to the repository](https://help.github.com/en/actions/building-actions/creating-a-javascript-action#commit-tag-and-push-your-action-to-github).
 
 You can test the action by running it locally like so:
 
