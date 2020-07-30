@@ -26,7 +26,7 @@ const main = async () => {
     failThreshold !== 'low' &&
     failThreshold !== 'informational'
   ) {
-    throw new Error('failThreshold input value is invalid')
+    throw new Error('fail_threshold input value is invalid')
   }
   core.debug(`Repository:${repository}, Tag:${tag}`)
   const ECR = new AWS.ECR()
