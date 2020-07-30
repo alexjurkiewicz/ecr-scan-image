@@ -26,7 +26,7 @@ const main = async () => {
     failThreshold !== 'low' &&
     failThreshold !== 'informational'
   ) {
-    throw new Error('failThreshold input value is invalid')
+    throw new Error('fail_threshold input value is invalid')
   }
   core.debug(`Repository:${repository}, Tag:${tag}`)
   const ECR = new AWS.ECR()
@@ -67,14 +67,14 @@ const main = async () => {
   const medium = counts.MEDIUM || 0
   const low = counts.LOW || 0
   const informational = counts.INFORMATIONAL || 0
-  const undefined = counts.UNDEFINED || 0
-  const total = critical + high + medium + low + informational + undefined
+  const indeterminate = counts.UNDEFINED || 0
+  const total = critical + high + medium + low + informational + indeterminate
   core.setOutput('critical', critical.toString())
   core.setOutput('high', high.toString())
   core.setOutput('medium', medium.toString())
   core.setOutput('low', low.toString())
   core.setOutput('informational', informational.toString())
-  core.setOutput('undefined', undefined.toString())
+  core.setOutput('undefined', indeterminate.toString())
   core.setOutput('total', total.toString())
   console.log('Vulnerabilities found:')
   console.log(`${critical.toString().padStart(3, ' ')} Critical`)
@@ -82,7 +82,7 @@ const main = async () => {
   console.log(`${medium.toString().padStart(3, ' ')} Medium`)
   console.log(`${low.toString().padStart(3, ' ')} Low`)
   console.log(`${informational.toString().padStart(3, ' ')} Informational`)
-  console.log(`${undefined.toString().padStart(3, ' ')} Undefined`)
+  console.log(`${indeterminate.toString().padStart(3, ' ')} Undefined`)
   console.log('=================')
   console.log(`${total.toString().padStart(3, ' ')} Total`)
 
