@@ -31,46 +31,43 @@ const main = async () => {
   core.debug(`Repository:${repository}, Tag:${tag}`)
   const ECR = new AWS.ECR()
 
-  let findings
-  let status = 'IN_PROGRESS'
-  let scanInitiated = false
-
   core.debug('Checking for existing findings')
-  findings = await getFindings(ECR, repository, tag)
-
-  if (
-    findings &&
-    findings.imageScanStatus &&
-    findings.imageScanStatus.status === 'IN_PROGRESS'
-  ) {
-    scanInitiated = true
+  let status = null
+  let findings = await getFindings(ECR, repository, tag)
+  if (findings) {
+    status = findings.imageScanStatus.status
+    console.log(`A scan for this image was already requested, the scan's status is ${status}`)
+    if (status == 'FAILED') {
+      throw new Error(`Image scan failed: ${findings.imageScanStatus.description}`)
+    }
+  } else {
+    console.log('Requesting image scan')
+    await ECR.startImageScan({
+      imageId: {
+        imageTag: tag
+      },
+      repositoryName: repository
+    }).promise()
+    status = 'IN_PROGRESS'
   }
 
-  if (findings === null || scanInitiated) {
-    if (!scanInitiated) {
-      console.log('Requesting image scan')
-      await ECR.startImageScan({
-        imageId: {
-          imageTag: tag
-        },
-        repositoryName: repository
-      }).promise()
-      core.debug('Requested image scan')
+  let firstPoll = true
+  while (status === 'IN_PROGRESS') {
+    if (!firstPoll) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, 5000)
+      })
     }
+    console.log('Polling ECR for image scan findings...')
+    findings = await getFindings(ECR, repository, tag)
+    status = findings.imageScanStatus.status
+    core.debug(`Scan status: ${status}`)
+    firstPoll = false
+  }
 
-    let n = 0
-    while (status === 'IN_PROGRESS') {
-      if (n > 0) {
-        await new Promise((resolve) => {
-          setTimeout(resolve, 5000)
-        })
-      }
-      console.log('Polling ECR for image scan findings...')
-      findings = await getFindings(ECR, repository, tag)
-      status = findings.imageScanStatus.status
-      core.debug(`Scan status: ${status}`)
-      n++
-    }
+  // Sanity check
+  if (status != 'COMPLETE') {
+    throw new Error(`Unhandled scan status "${status}". API response: ${JSON.stringify(findings)}`)
   }
 
   const counts = findings.imageScanFindings.findingSeverityCounts
