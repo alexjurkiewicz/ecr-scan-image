@@ -34,6 +34,7 @@ const main = async () => {
   let findings
   let status = 'IN_PROGRESS'
   let scanInitiated = false
+  let haveResults = false
 
   core.debug('Checking for existing findings')
   findings = await getFindings(ECR, repository, tag)
@@ -46,18 +47,27 @@ const main = async () => {
     scanInitiated = true
   }
 
-  if (findings === null || scanInitiated) {
-    if (!scanInitiated) {
-      console.log('Requesting image scan')
-      await ECR.startImageScan({
-        imageId: {
-          imageTag: tag
-        },
-        repositoryName: repository
-      }).promise()
-      core.debug('Requested image scan')
-    }
+  if (
+    findings &&
+    findings.imageScanStatus &&
+    findings.imageScanStatus.status === 'COMPLETED'
+  ) {
+    haveResults = true
+  }
 
+  if (!haveResults && !scanInitiated) {
+    console.log('Requesting image scan')
+    await ECR.startImageScan({
+      imageId: {
+        imageTag: tag
+      },
+      repositoryName: repository
+    }).promise()
+    scanInitiated = true
+    core.debug('Requested image scan')
+  }
+
+  if (!haveResults && scanInitiated) {
     let n = 0
     while (status === 'IN_PROGRESS') {
       if (n > 0) {
