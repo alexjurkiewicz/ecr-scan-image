@@ -34,6 +34,12 @@ Scan an image uploaded to ECR and fail if vulnerabilities are found.
 | informational | Number of informational vulnerabilities detected. |
 | unknown | Number of unknown vulnerabilities detected. |
 
+## Required ECR permissions
+
+To use this GitHub action in your workflow, your ECR role/user will need to have the following permissions:
+- `ecr:DescribeImageScanFindings`
+- `ecr:StartImageScan` (unless [**scan on push**](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning.html#scanning-repository) is enabled)
+
 ## Example
 
 This example builds a docker image, uploads it to AWS ECR, then scans it for vulnerabilities.
