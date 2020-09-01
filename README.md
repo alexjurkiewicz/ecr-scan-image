@@ -21,6 +21,7 @@ Scan an image uploaded to ECR and fail if vulnerabilities are found.
 | repository | :white_check_mark:  | ECR repository, eg myorg/myimage |
 | tag    | :white_check_mark: | Image tag to scan |
 | fail_threshold | | Fail if any vulnerabilities equal to or over this severity level are detected. Valid values: critical, high, medium, low, informational. Default value is high. |
+| ignore_list | | List of CVE IDs to ignore. |
 
 ## Outputs
 
