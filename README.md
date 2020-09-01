@@ -87,9 +87,14 @@ jobs:
           repository: myorg/myimage
           tag: ${{ steps.docker-build.outputs.tag }}
           # fail_threshold: medium
+          # ignore_list: |
+          #   CVE-2020-1234
+          #   CVE-2020-5678
       # Access scan results in later steps
       - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 ```
+
+>:warning: **Note**: The `ignore_list` can either be a multi-line string (like the example) or a comma-separated list of CVE IDs.
 
 ## Development
 
