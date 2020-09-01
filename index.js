@@ -13,18 +13,37 @@ const AWS = require('aws-sdk')
  */
 
 /**
+ * Get paginated AWS JS SDK results
+ * @param {*} fn
+ * @author https://advancedweb.hu/how-to-paginate-the-aws-js-sdk-using-async-generators/
+ */
+const getPaginatedResults = async (fn) => {
+  const EMPTY = Symbol('empty');
+  const res = [];
+  for await (const lf of (async function*() {
+    let NextMarker = EMPTY;
+    while (NextMarker || NextMarker === EMPTY) {
+      const { marker, results } = await fn(NextMarker !== EMPTY ? NextMarker : undefined);
+      yield* results;
+      NextMarker = marker;
+    }
+  })()) {
+    res.push(lf);
+  }
+  return res;
+};
+
+/**
  * @param {AWS.ECR} ECR
  * @param {string} repository
  * @param {string} tag
- * @param {boolean} useMaxResults
  * @returns {AWS.Request|AWS.AWSError|null} Results, Error or `null`.
  */
-const getFindings = async (ECR, repository, tag, useMaxResults = false) => {
+const getFindings = async (ECR, repository, tag) => {
   return ECR.describeImageScanFindings({
     imageId: {
       imageTag: tag
     },
-    maxResults: useMaxResults ? 1000 : undefined, // Valid range: 1-1000, default: 100
     repositoryName: repository
   }).promise().catch(
     (err) => {
@@ -32,6 +51,35 @@ const getFindings = async (ECR, repository, tag, useMaxResults = false) => {
       throw err
     })
 }
+
+/**
+ * Method to collect all scan results.
+ * @param {AWS.ECR} ECR
+ * @param {string} repository
+ * @param {string} tag
+ * @returns {AWS.ECR.ImageScanFinding[]|AWS.AWSError|null} Results, Error or `null`.
+ */
+const getAllFindings = async (ECR, repository, tag) => {
+  return await getPaginatedResults(async (NextMarker) => {
+    const findings = await ECR.describeImageScanFindings({
+      imageId: {
+        imageTag: tag
+      },
+      maxResults: 1000, // Valid range: 1-1000, default: 100
+      repositoryName: repository,
+      nextToken: NextMarker
+    }).promise().catch(
+      (err) => {
+        if (err.code === 'ScanNotFoundException') { return null }
+        throw err
+      })
+
+    return {
+      marker: findings.nextToken,
+      results: findings.imageScanFindings.findings,
+    };
+  })
+};
 
 /**
  * Tally findings by severity.
@@ -137,7 +185,7 @@ const main = async () => {
     throw new Error(`Unhandled scan status "${status}". API response: ${JSON.stringify(findings)}`)
   }
 
-  const findingsList = findings.imageScanFindings.findings
+  const findingsList = !!ignoreList.length ? await getAllFindings(ECR, repository, tag) : [] // only fetch all findings if we have an ignore list
   const ignoredFindings = findingsList.filter(({ name }) => ignoreList.includes(name))
 
   if (ignoreList.length !== ignoredFindings.length) {
