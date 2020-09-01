@@ -44,7 +44,8 @@ const countIgnoredFindings = (ignoredFindings) =>
   ignoredFindings.reduce(
     (counts, finding) => {
       const updatedCount = { ...counts }
-      updatedCount[finding.severity] = counts[finding.severity] + 1
+      const severity = finding.severity.toLowerCase()
+      updatedCount[severity] = counts[severity] + 1
       updatedCount.total++
       return updatedCount
     },
@@ -157,21 +158,21 @@ const main = async () => {
   core.setOutput('ignored', ignored.toString())
   core.setOutput('total', total.toString())
   console.log('Vulnerabilities found:')
-  console.log(`${critical.toString().padStart(3, ' ')} Critical ${getCount(  'CRITICAL',  ignoredCounts)}`)
-  console.log(`${high.toString().padStart(3, ' ')} High ${getCount(  'HIGH',  ignoredCounts)}`)
-  console.log(`${medium.toString().padStart(3, ' ')} Medium ${getCount(  'MEDIUM',  ignoredCounts)}`)
-  console.log(`${low.toString().padStart(3, ' ')} Low ${getCount('LOW', ignoredCounts)}`)
-  console.log(`${informational.toString().padStart(3, ' ')} Informational ${getCount(  'INFORMATIONAL',  ignoredCounts)}`)
+  console.log(`${critical.toString().padStart(3, ' ')} Critical ${getCount('critical', ignoredCounts)}`)
+  console.log(`${high.toString().padStart(3, ' ')} High ${getCount('high', ignoredCounts)}`)
+  console.log(`${medium.toString().padStart(3, ' ')} Medium ${getCount('medium', ignoredCounts)}`)
+  console.log(`${low.toString().padStart(3, ' ')} Low ${getCount('low', ignoredCounts)}`)
+  console.log(`${informational.toString().padStart(3, ' ')} Informational ${getCount('informational', ignoredCounts)}`)
   console.log(`${indeterminate.toString().padStart(3, ' ')} Undefined`)
   console.log('=================')
-  console.log(`${total.toString().padStart(3, ' ')} Total ${getCount(  'TOTAL',  ignoredCounts)}`)
+  console.log(`${total.toString().padStart(3, ' ')} Total ${getCount('total', ignoredCounts)}`)
 
   const numFailingVulns =
-    failThreshold === 'informational' ? total - ignoredCounts.INFORMATIONAL
-      : failThreshold === 'low' ? critical + high + medium + low - ignoredCounts.LOW
-        : failThreshold === 'medium' ? critical + high + medium - ignoredCounts.MEDIUM
-          : failThreshold === 'high' ? critical + high - ignoredCounts.HIGH
-            : /* failThreshold === 'critical' ? */ critical - ignoredCounts.CRITICAL
+    failThreshold === 'informational' ? total - ignoredCounts.informational
+      : failThreshold === 'low' ? critical + high + medium + low - ignoredCounts.low
+        : failThreshold === 'medium' ? critical + high + medium - ignoredCounts.medium
+          : failThreshold === 'high' ? critical + high - ignoredCounts.high
+            : /* failThreshold === 'critical' ? */ critical - ignoredCounts.critical
 
   if (numFailingVulns > 0) {
     throw new Error(`Detected ${numFailingVulns} vulnerabilities with severity >= ${failThreshold} (the currently configured fail_threshold).`)
