@@ -10,8 +10,6 @@ const AWS = require('aws-sdk')
  *  informational: number,
  *  undefined: number,
  *  total: number }} IgnoredCounts
- *
- * @typedef {{ severity: string }} ImageScanFinding https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_ImageScanFinding.html
  */
 
 /**
@@ -37,7 +35,7 @@ const getFindings = async (ECR, repository, tag, useMaxResults = false) => {
 
 /**
  * Tally findings by severity.
- * @param {ImageScanFinding[]} ignoredFindings
+ * @param {AWS.ECR.ImageScanFinding[]} ignoredFindings
  * @returns {IgnoredCounts} counts
  */
 const countIgnoredFindings = (ignoredFindings) =>
@@ -140,9 +138,7 @@ const main = async () => {
   }
 
   const findingsList = findings.imageScanFindings.findings
-  const ignoredFindings = findingsList.filter(({ name }) =>
-    ignoreList.includes(name)
-  )
+  const ignoredFindings = findingsList.filter(({ name }) => ignoreList.includes(name))
 
   if (ignoreList.length !== ignoredFindings.length) {
     throw new Error(`Ignore list contains CVE IDs that were not returned in the findings result set. They may be invalid or no longer be current vulnerabilities.`)
