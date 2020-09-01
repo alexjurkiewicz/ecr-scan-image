@@ -141,6 +141,9 @@ const main = async () => {
   const ignoredFindings = findingsList.filter(({ name }) => ignoreList.includes(name))
 
   if (ignoreList.length !== ignoredFindings.length) {
+    const missedIgnores = ignoreList.filter(name => !ignoredFindings.map(d => d.name).includes(name))
+    console.log('The following CVEs were not found in the result set:')
+    missedIgnores.forEach(miss => console.log(`  - ${miss}`))
     throw new Error(`Ignore list contains CVE IDs that were not returned in the findings result set. They may be invalid or no longer be current vulnerabilities.`)
   }
 
