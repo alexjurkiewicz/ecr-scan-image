@@ -14,6 +14,13 @@ const AWS = require('aws-sdk')
  * @typedef {{ severity: string }} ImageScanFinding https://docs.aws.amazon.com/AmazonECR/latest/APIReference/API_ImageScanFinding.html
  */
 
+/**
+ * @param {AWS.ECR} ECR
+ * @param {string} repository
+ * @param {string} tag
+ * @param {boolean} useMaxResults
+ * @returns {AWS.Request|AWS.AWSError|null} Results, Error or `null`.
+ */
 const getFindings = async (ECR, repository, tag, useMaxResults = false) => {
   return ECR.describeImageScanFindings({
     imageId: {
