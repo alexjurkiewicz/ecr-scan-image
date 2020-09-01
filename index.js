@@ -63,13 +63,22 @@ const getCount = (severity, counts) =>
 
 /**
  * Build an array with CVE IDs to ignore in the counts.
- * @param {string | string[]} list - Comma separated list or array of CVE IDs.
+ * @param {string | string[]} list - Comma-separated list, string with newlines or array of CVE IDs.
  * @returns {string[]} Array of CVE IDs
  */
 const parseIgnoreList = (list) => {
-  if (Array.isArray(list)) return list
+  if (Array.isArray(list)) return list // when GitHub Actions allow arrays to be passed in.
   if (!list) return []
-  return list.split(',').map((d) => d.trim())
+
+  const ignoreList =
+    list
+      .trim() // remove trailing newlines if any
+      .replace(/\n/g, ',') // replace newlines with commas, if any
+      .split(',') // build the array
+      .map((i) => i.trim()) // ensure each item doesn't contain any white-space
+      .filter(Boolean) // remove empty items
+
+  return ignoreList
 }
 
 const main = async () => {
