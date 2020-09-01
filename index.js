@@ -203,7 +203,7 @@ const main = async () => {
   const low = counts.LOW || 0
   const informational = counts.INFORMATIONAL || 0
   const indeterminate = counts.UNDEFINED || 0
-  const ignored = ignoreList.length
+  const ignored = ignoredFindings.length
   const total = critical + high + medium + low + informational + indeterminate
   core.setOutput('critical', critical.toString())
   core.setOutput('high', high.toString())
