@@ -43,7 +43,7 @@ const countIgnoredFindings = (ignoredFindings) =>
     (counts, finding) => {
       const updatedCount = { ...counts }
       const severity = finding.severity.toLowerCase()
-      updatedCount[severity] = counts[severity] + 1
+      updatedCount[severity]++
       updatedCount.total++
       return updatedCount
     },
