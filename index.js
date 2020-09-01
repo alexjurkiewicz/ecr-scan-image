@@ -66,7 +66,7 @@ const main = async () => {
   }
 
   // Sanity check
-  if (status != 'COMPLETE') {
+  if (status !== 'COMPLETE') {
     throw new Error(`Unhandled scan status "${status}". API response: ${JSON.stringify(findings)}`)
   }
 
@@ -107,10 +107,10 @@ const main = async () => {
   }
 }
 
-(async function () {
+;(async function () {
   try {
     await main()
   } catch (error) {
     core.setFailed(error.message)
   }
-}())
+})()
