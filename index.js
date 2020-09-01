@@ -52,7 +52,7 @@ const countIgnoredFindings = (ignoredFindings) =>
 
 /**
  * Returns display text for a severity level.
- * @param {string} severity
+ * @param {keyof IgnoredCounts} severity
  * @param {IgnoredCounts} counts
  * @returns {string}
  */
@@ -168,7 +168,7 @@ const main = async () => {
   console.log(`${medium.toString().padStart(3, ' ')} Medium ${getCount('medium', ignoredCounts)}`)
   console.log(`${low.toString().padStart(3, ' ')} Low ${getCount('low', ignoredCounts)}`)
   console.log(`${informational.toString().padStart(3, ' ')} Informational ${getCount('informational', ignoredCounts)}`)
-  console.log(`${indeterminate.toString().padStart(3, ' ')} Undefined`)
+  console.log(`${indeterminate.toString().padStart(3, ' ')} Undefined ${getCount('undefined', ignoredCounts)}`)
   console.log('=================')
   console.log(`${total.toString().padStart(3, ' ')} Total ${getCount('total', ignoredCounts)}`)
 
