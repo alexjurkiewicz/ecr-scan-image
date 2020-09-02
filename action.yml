@@ -11,6 +11,8 @@ inputs:
     description: >
       Fail if any vulnerabilities equal to or over this severity level are detected. Valid values: critical, high, medium, low, informational.
     default: medium
+  ignore_list:
+    description: List of CVE IDs to ignore in the vulnerability findings.
 outputs:
   critical:
     description: Number of critical vulnerabilities detected.
