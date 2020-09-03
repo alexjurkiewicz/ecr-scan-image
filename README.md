@@ -88,8 +88,8 @@ jobs:
           tag: ${{ steps.docker-build.outputs.tag }}
           # fail_threshold: medium
           # ignore_list: |
-          #   CVE-2020-1234
-          #   CVE-2020-5678
+          #   CVE-2014-7654321
+          #   CVE-2014-456132
       # Access scan results in later steps
       - run: echo "${{ steps.docker-scan.outputs.total }} total vulnerabilities."
 ```
