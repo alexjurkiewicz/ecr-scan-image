@@ -14,6 +14,7 @@
   "license": "ISC",
   "dependencies": {
     "@actions/core": "^1.2.6",
-    "aws-sdk": "^2.620.0"
+    "aws-sdk": "^2.620.0",
+    "proxy-agent": "^4.0.1"
   }
 }

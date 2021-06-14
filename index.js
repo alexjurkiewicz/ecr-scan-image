@@ -127,6 +127,13 @@ const parseIgnoreList = (list) => {
   return ignoreList
 }
 
+function configureGlobalProxy(proxyUrl) {
+  var proxy = require('proxy-agent');
+    AWS.config.update({
+      httpOptions: { agent: proxy(proxyUrl) }
+    });
+}
+
 const main = async () => {
   core.debug('Entering main')
   const repository = core.getInput('repository', { required: true })
@@ -134,6 +141,12 @@ const main = async () => {
   const failThreshold = core.getInput('fail_threshold') || 'high'
   const ignoreList = parseIgnoreList(core.getInput('ignore_list'))
 
+  if (proxyUrl = process.env.HTTPS_PROXY 
+      || process.env.https_proxy) {
+    core.debug("Using proxy URL: " + proxyUrl);
+    configureGlobalProxy(proxyUrl)
+  }
+  
   if (
     failThreshold !== 'critical' &&
     failThreshold !== 'high' &&
