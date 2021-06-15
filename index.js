@@ -1,5 +1,6 @@
 const core = require('@actions/core')
 const AWS = require('aws-sdk')
+const proxy = require('proxy-agent');
 
 /**
  * @typedef {{
@@ -128,10 +129,10 @@ const parseIgnoreList = (list) => {
 }
 
 function configureGlobalProxy(proxyUrl) {
-  var proxy = require('proxy-agent');
-    AWS.config.update({
-      httpOptions: { agent: proxy(proxyUrl) }
-    });
+  core.debug("Using proxy URL: " + proxyUrl);
+  AWS.config.update({
+    httpOptions: { agent: proxy(proxyUrl) }
+  });
 }
 
 const main = async () => {
@@ -141,9 +142,8 @@ const main = async () => {
   const failThreshold = core.getInput('fail_threshold') || 'high'
   const ignoreList = parseIgnoreList(core.getInput('ignore_list'))
 
-  if (proxyUrl = process.env.HTTPS_PROXY 
-      || process.env.https_proxy) {
-    core.debug("Using proxy URL: " + proxyUrl);
+  const proxyUrl = process.env.HTTPS_PROXY || process.env.https_proxy
+  if (proxyUrl !== undefined) {
     configureGlobalProxy(proxyUrl)
   }
   
