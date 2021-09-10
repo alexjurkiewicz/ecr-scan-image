@@ -209,6 +209,7 @@ const main = async () => {
   }
 
   const ignoredCounts = countIgnoredFindings(ignoredFindings)
+  const findings_details = findings.imageScanFindings.findings || new Array()
   const counts = findings.imageScanFindings.findingSeverityCounts
   const critical = counts.CRITICAL || 0
   const high = counts.HIGH || 0
@@ -218,7 +219,8 @@ const main = async () => {
   const indeterminate = counts.UNDEFINED || 0
   const ignored = ignoredFindings.length
   const total = critical + high + medium + low + informational + indeterminate
-  core.setOutput('critical', critical.toString())
+  core.setOutput('findings_details', critical.toString())
+  core.setOutput('critical', findings_details.toString())
   core.setOutput('high', high.toString())
   core.setOutput('medium', medium.toString())
   core.setOutput('low', low.toString())
@@ -226,6 +228,8 @@ const main = async () => {
   core.setOutput('undefined', indeterminate.toString())
   core.setOutput('ignored', ignored.toString())
   core.setOutput('total', total.toString())
+  console.log('Findings:');
+  console.log(findings_details.toString())
   console.log('Vulnerabilities found:')
   console.log(`${critical.toString().padStart(3, ' ')} Critical ${getCount('critical', ignoredCounts)}`)
   console.log(`${high.toString().padStart(3, ' ')} High ${getCount('high', ignoredCounts)}`)
