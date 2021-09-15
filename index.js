@@ -228,8 +228,15 @@ const main = async () => {
   core.setOutput('undefined', indeterminate.toString())
   core.setOutput('ignored', ignored.toString())
   core.setOutput('total', total.toString())
-  console.log('Findings:');
-  console.log(JSON.stringify(findings_details))
+  core.startGroup('Findings');
+  findings_details.forEach(function(finding_detail,index){
+    let finding_attributes = [];
+    finding_detail.attributes.forEach(function(attribute){
+      finding_attributes.push(attribute.key+"="+attribute.value);
+     });
+    console.log(index+1 +'. '+finding_detail.name+' ('+finding_detail.severity+') '+finding_attributes.join(" "));
+  });
+  core.endGroup();
   console.log('Vulnerabilities found:')
   console.log(`${critical.toString().padStart(3, ' ')} Critical ${getCount('critical', ignoredCounts)}`)
   console.log(`${high.toString().padStart(3, ' ')} High ${getCount('high', ignoredCounts)}`)
