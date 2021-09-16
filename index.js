@@ -233,7 +233,7 @@ const main = async () => {
     let finding_attributes = []
     finding_detail.attributes.forEach((attribute) => {
       finding_attributes.push(`${attribute.key}=${attribute.value}`)
-     })
+    })
     console.log(`${index + 1}. ${finding_detail.name} (${finding_detail.severity}) ${finding_attributes.join(" ")}`)
   })
   core.endGroup()
