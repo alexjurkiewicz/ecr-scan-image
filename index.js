@@ -229,12 +229,12 @@ const main = async () => {
   core.setOutput('ignored', ignored.toString())
   core.setOutput('total', total.toString())
   core.startGroup('Findings');
-  findings_details.forEach(function(finding_detail,index){
+  findings_details.forEach(function(finding_detail,index) {
     let finding_attributes = [];
-    finding_detail.attributes.forEach(function(attribute){
-      finding_attributes.push(attribute.key+"="+attribute.value);
+    finding_detail.attributes.forEach(function(attribute) {
+      finding_attributes.push(`${attribute.key}=${attribute.value}`);
      });
-    console.log(index+1 +'. '+finding_detail.name+' ('+finding_detail.severity+') '+finding_attributes.join(" "));
+    console.log(`${index + 1}. ${finding_detail.name} (${finding_detail.severity}) ${finding_attributes.join(" ")}`);
   });
   core.endGroup();
   console.log('Vulnerabilities found:')
