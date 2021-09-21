@@ -209,7 +209,7 @@ const main = async () => {
   }
 
   const ignoredCounts = countIgnoredFindings(ignoredFindings)
-  const findings_details = findings.imageScanFindings.findings || []
+  const findingsDetails = findings.imageScanFindings.findings || []
   const counts = findings.imageScanFindings.findingSeverityCounts
   const critical = counts.CRITICAL || 0
   const high = counts.HIGH || 0
@@ -219,7 +219,7 @@ const main = async () => {
   const indeterminate = counts.UNDEFINED || 0
   const ignored = ignoredFindings.length
   const total = critical + high + medium + low + informational + indeterminate
-  core.setOutput('findings_details', findings_details.toString())
+  core.setOutput('findingsDetails', findingsDetails.toString())
   core.setOutput('critical', critical.toString())
   core.setOutput('high', high.toString())
   core.setOutput('medium', medium.toString())
@@ -229,12 +229,12 @@ const main = async () => {
   core.setOutput('ignored', ignored.toString())
   core.setOutput('total', total.toString())
   core.startGroup('Findings')
-  findings_details.forEach((finding_detail,index) => {
-    let finding_attributes = []
-    finding_detail.attributes.forEach((attribute) => {
-      finding_attributes.push(`${attribute.key}=${attribute.value}`)
+  findingsDetails.forEach((findingDetail, index) => {
+    let findingAttributes = []
+    findingDetail.attributes.forEach((attribute) => {
+      findingAttributes.push(`${attribute.key}=${attribute.value}`)
     })
-    console.log(`${index + 1}. ${finding_detail.name} (${finding_detail.severity}) ${finding_attributes.join(" ")}`)
+    console.log(`${index + 1}. ${findingDetail.name} (${findingDetail.severity}) ${findingAttributes.join(" ")}`)
   })
   core.endGroup()
   console.log('Vulnerabilities found:')
