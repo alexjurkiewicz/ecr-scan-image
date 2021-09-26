@@ -7,7 +7,7 @@ Scan an image uploaded to ECR and fail if vulnerabilities are found.
 ```yaml
       - name: Scan Docker image
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v1.5.0
+        uses: alexjurkiewicz/ecr-scan-image@v1.7.0
         with:
           repository: myorg/myimage
           tag: v1.2.3
@@ -82,7 +82,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$tag
       - name: Scan Docker image
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v1.5.0
+        uses: alexjurkiewicz/ecr-scan-image@v1.7.0
         with:
           repository: myorg/myimage
           tag: ${{ steps.docker-build.outputs.tag }}
