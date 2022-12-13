@@ -7,7 +7,7 @@ Scan an image uploaded to ECR and fail if vulnerabilities are found.
 ```yaml
       - name: Scan Docker image
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v1.7.0
+        uses: alexjurkiewicz/ecr-scan-image@v1.7.1
         with:
           repository: myorg/myimage
           tag: v1.2.3
@@ -20,7 +20,7 @@ Scan an image uploaded to ECR and fail if vulnerabilities are found.
 | ------ | --------- | ----------- |
 | repository | :white_check_mark:  | ECR repository, eg myorg/myimage |
 | tag    | :white_check_mark: | Image tag to scan |
-| fail_threshold | | Fail if any vulnerabilities equal to or over this severity level are detected. Valid values: critical, high, medium, low, informational. Default value is high. |
+| fail_threshold | | Fail if any vulnerabilities equal to or over this severity level are detected. Valid values: `critical`, `high`, `medium`, `low`, `informational`. Default value is `high`. |
 | ignore_list | | List of CVE IDs to ignore.<br/>:warning: **Note**: The `ignore_list` can either be a multi-line string (like the example below) or a list (separated using commas or spaces) containing CVE IDs to be ignored. |
 
 ## Outputs
@@ -82,7 +82,7 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$tag
       - name: Scan Docker image
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v1.7.0
+        uses: alexjurkiewicz/ecr-scan-image@v1.7.1
         with:
           repository: myorg/myimage
           tag: ${{ steps.docker-build.outputs.tag }}
