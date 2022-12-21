@@ -28,6 +28,8 @@ outputs:
     description: Number of unknown severity vulnerabilities detected.
   total:
     description: Total number of vulnerabilities detected.
+  findingsDetails:
+    description: Details of findings.
 runs:
   using: "docker"
   image: "Dockerfile"
