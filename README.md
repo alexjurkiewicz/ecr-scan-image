@@ -34,6 +34,7 @@ Scan an image uploaded to ECR and fail if vulnerabilities are found.
 | low | Number of low vulnerabilities detected. |
 | informational | Number of informational vulnerabilities detected. |
 | unknown | Number of unknown vulnerabilities detected. |
+| findingsDetails | Details of findings. |
 
 ## Required ECR permissions
 
