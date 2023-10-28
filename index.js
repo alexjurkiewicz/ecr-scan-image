@@ -135,6 +135,26 @@ function configureGlobalProxy(proxyUrl) {
   });
 }
 
+function countFailingVulnerabilities(failThreshold, foundCounts, ignoredCounts) {
+    let count = foundCounts.critical - ignoredCounts.critical;
+    if (failThreshold === 'critical') {
+        return count;
+    }
+    count += foundCounts.high - ignoredCounts.high;
+    if (failThreshold === 'high') {
+        return count;
+    }
+    count += foundCounts.medium - ignoredCounts.medium;
+    if (failThreshold === 'medium') {
+        return count;
+    }
+    count += foundCounts.low - ignoredCounts.low;
+    if (failThreshold === 'low') {
+        return count;
+    }
+    return count + foundCounts.informational - ignoredCounts.informational;
+}
+
 const main = async () => {
   core.debug('Entering main')
   const repository = core.getInput('repository', { required: true })
@@ -247,12 +267,11 @@ const main = async () => {
   console.log('=================')
   console.log(`${total.toString().padStart(3, ' ')} Total ${getCount('total', ignoredCounts)}`)
 
-  const numFailingVulns =
-    failThreshold === 'informational' ? total - ignoredCounts.informational
-      : failThreshold === 'low' ? critical + high + medium + low - ignoredCounts.low
-        : failThreshold === 'medium' ? critical + high + medium - ignoredCounts.medium
-          : failThreshold === 'high' ? critical + high - ignoredCounts.high
-            : /* failThreshold === 'critical' ? */ critical - ignoredCounts.critical
+  const numFailingVulns = countFailingVulnerabilities(
+    failThreshold,
+    { informational, low, medium, high, critical },
+    ignoredCounts,
+  )
 
   if (numFailingVulns > 0) {
     throw new Error(`Detected ${numFailingVulns} vulnerabilities with severity >= ${failThreshold} (the currently configured fail_threshold).`)
