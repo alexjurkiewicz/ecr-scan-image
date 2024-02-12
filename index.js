@@ -61,7 +61,6 @@ const getFindings = async (ECR, repository, tag) => {
  * @returns {AWS.ECR.ImageScanFinding[]|AWS.AWSError|null} Results, Error or `null`.
  */
 const getAllFindings = async (ECR, repository, tag) => {
-  core.debug('getAllFindings');
   return await getPaginatedResults(async (NextMarker) => {
     const findings = await ECR.describeImageScanFindings({
       imageId: {
@@ -75,14 +74,11 @@ const getAllFindings = async (ECR, repository, tag) => {
         core.debug(`Error: ${err}`);
         if (err.code === 'ScanNotFoundException') { return null }
         throw err
-      });
-    
-    core.debug('getAllFindings returning');
-    core.debug(`findings.nextToken: ${findings.nextToken}`);
+      })
 
     return {
       marker: findings.nextToken,
-      results: findings.imageScanFindings.findings,
+      results: findings.imageScanFindings.findings || findings.imageScanFindings.enhancedFindings,
     };
   })
 };
@@ -160,6 +156,15 @@ function countFailingVulnerabilities(failThreshold, foundCounts, ignoredCounts) 
     return count + foundCounts.informational - ignoredCounts.informational;
 }
 
+/**
+ * @param {AWS.ECR.ImageScanFinding[]} findings
+ * @returns {boolean}
+ * @description Check if the scan is enhanced or not
+ */
+function isEnhancedScan(findings) {
+  return 'enhancedFindings' in findings.imageScanFindings;
+}
+
 const main = async () => {
   core.debug('Entering main')
   const repository = core.getInput('repository', { required: true })
@@ -187,7 +192,14 @@ const main = async () => {
   core.debug('Checking for existing findings')
   let status = null
   let findings = await getFindings(ECR, repository, tag, !!ignoreList.length)
+  core.debug(`Findings: ${JSON.stringify(findings)}`)
+  let findingsList = [];
   if (findings) {
+    if (isEnhancedScan(findings)) {
+      findingsList = findings.imageScanFindings.enhancedFindings;
+    } else {
+      findingsList = findings.imageScanFindings.findings;
+    }
     status = findings.imageScanStatus.status
     console.log(`A scan for this image was already requested, the scan's status is ${status}`)
     if (status == 'FAILED') {
@@ -222,20 +234,31 @@ const main = async () => {
   if (status !== 'COMPLETE' && status !== 'ACTIVE') {
     throw new Error(`Unhandled scan status "${status}". API response: ${JSON.stringify(findings)}`)
   }
-  core.debug(`findings: ${JSON.stringify(findings)}`)
-  const findingsList = !!ignoreList.length ? await getAllFindings(ECR, repository, tag) : [] // only fetch all findings if we have an ignore list
-  core.debug(`findingsList: ${JSON.stringify(findingsList)}`)
-  const ignoredFindings = findingsList.filter(({ name }) => ignoreList.includes(name))
 
-  if (ignoreList.length !== ignoredFindings.length) {
-    const missedIgnores = ignoreList.filter(name => !ignoredFindings.map(({ name }) => name).includes(name))
-    console.log('The following CVEs were not found in the result set:')
-    missedIgnores.forEach(miss => console.log(`  ${miss}`))
-    throw new Error(`Ignore list contains CVE IDs that were not returned in the findings result set. They may be invalid or no longer be current vulnerabilities.`)
+  const allFindingsList = !!ignoreList.length ? await getAllFindings(ECR, repository, tag) : []; // only fetch all findings if we have an ignore list
+  let ignoredFindings;
+  if (isEnhancedScan(findings)) {
+    ignoredFindings = allFindingsList.filter(({ packageVulnerabilityDetails }) => ignoreList.includes(packageVulnerabilityDetails.vulnerabilityId));
+
+    if (ignoreList.length !== ignoredFindings.length) {
+      const missedIgnores = ignoreList.filter(vulnerabilityId => !ignoredFindings.map(({ packageVulnerabilityDetails }) => packageVulnerabilityDetails.vulnerabilityId).includes(vulnerabilityId));
+      console.log('The following CVEs were not found in the result set:');
+      missedIgnores.forEach(miss => console.log(`  ${miss}`));
+      throw new Error(`Ignore list contains CVE IDs that were not returned in the findings result set. They may be invalid or no longer be current vulnerabilities.`);
+    }
+  } else {
+    ignoredFindings = findingsList.filter(({ name }) => ignoreList.includes(name));
+
+    if (ignoreList.length !== ignoredFindings.length) {
+      const missedIgnores = ignoreList.filter(name => !ignoredFindings.map(({ name }) => name).includes(name));
+      console.log('The following CVEs were not found in the result set:');
+      missedIgnores.forEach(miss => console.log(`  ${miss}`));
+      throw new Error(`Ignore list contains CVE IDs that were not returned in the findings result set. They may be invalid or no longer be current vulnerabilities.`);
+    }
   }
 
   const ignoredCounts = countIgnoredFindings(ignoredFindings)
-  const findingsDetails = findings.imageScanFindings.findings || []
+  const findingsDetails = findingsList || []
   const counts = findings.imageScanFindings.findingSeverityCounts
   const critical = counts.CRITICAL || 0
   const high = counts.HIGH || 0
@@ -255,13 +278,19 @@ const main = async () => {
   core.setOutput('ignored', ignored.toString())
   core.setOutput('total', total.toString())
   core.startGroup('Findings')
-  findingsDetails.forEach((findingDetail, index) => {
-    let findingAttributes = []
-    findingDetail.attributes.forEach((attribute) => {
-      findingAttributes.push(`${attribute.key}=${attribute.value}`)
-    })
-    console.log(`${index + 1}. ${findingDetail.name} (${findingDetail.severity}) ${findingAttributes.join(" ")}`)
-  })
+  if (isEnhancedScan(findings)) {
+    findingsDetails.forEach((findingDetail, index) => {
+      console.log(`${index + 1}. ${findingDetail.packageVulnerabilityDetails.vulnerabilityId} (${findingDetail.packageVulnerabilityDetails.vendorSeverity}) ${JSON.stringify(findingDetail.packageVulnerabilityDetails.cvss)} ${JSON.stringify(findingDetail.packageVulnerabilityDetails.vulnerablePackages)}`);
+    });
+  } else {
+    findingsDetails.forEach((findingDetail, index) => {
+      let findingAttributes = [];
+      findingDetail.attributes.forEach((attribute) => {
+        findingAttributes.push(`${attribute.key}=${attribute.value}`);
+      });
+      console.log(`${index + 1}. ${findingDetail.name} (${findingDetail.severity}) ${findingAttributes.join(" ")}`);
+    });
+  }
   core.endGroup()
   console.log('Vulnerabilities found:')
   console.log(`${critical.toString().padStart(3, ' ')} Critical ${getCount('critical', ignoredCounts)}`)
