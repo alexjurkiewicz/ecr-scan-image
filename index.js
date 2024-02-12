@@ -61,6 +61,7 @@ const getFindings = async (ECR, repository, tag) => {
  * @returns {AWS.ECR.ImageScanFinding[]|AWS.AWSError|null} Results, Error or `null`.
  */
 const getAllFindings = async (ECR, repository, tag) => {
+  core.debug('getAllFindings');
   return await getPaginatedResults(async (NextMarker) => {
     const findings = await ECR.describeImageScanFindings({
       imageId: {
@@ -71,9 +72,13 @@ const getAllFindings = async (ECR, repository, tag) => {
       nextToken: NextMarker
     }).promise().catch(
       (err) => {
+        core.debug(`Error: ${err}`);
         if (err.code === 'ScanNotFoundException') { return null }
         throw err
-      })
+      });
+    
+    core.debug('getAllFindings returning');
+    core.debug(`findings.nextToken: ${findings.nextToken}`);
 
     return {
       marker: findings.nextToken,
@@ -217,8 +222,9 @@ const main = async () => {
   if (status !== 'COMPLETE' && status !== 'ACTIVE') {
     throw new Error(`Unhandled scan status "${status}". API response: ${JSON.stringify(findings)}`)
   }
-
+  core.debug(`findings: ${JSON.stringify(findings)}`)
   const findingsList = !!ignoreList.length ? await getAllFindings(ECR, repository, tag) : [] // only fetch all findings if we have an ignore list
+  core.debug(`findingsList: ${JSON.stringify(findingsList)}`)
   const ignoredFindings = findingsList.filter(({ name }) => ignoreList.includes(name))
 
   if (ignoreList.length !== ignoredFindings.length) {
