@@ -214,7 +214,7 @@ const main = async () => {
   }
 
   // Sanity check
-  if (status !== 'COMPLETE') {
+  if (status !== 'COMPLETE' && status !== 'ACTIVE') {
     throw new Error(`Unhandled scan status "${status}". API response: ${JSON.stringify(findings)}`)
   }
 
