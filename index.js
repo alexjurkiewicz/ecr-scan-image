@@ -236,7 +236,7 @@ const main = async () => {
   }
 
   const allFindingsList = !!ignoreList.length ? await getAllFindings(ECR, repository, tag) : []; // only fetch all findings if we have an ignore list
-  let ignoredFindings;
+  let ignoredFindings = [];
   if (isEnhancedScan(findings)) {
     ignoredFindings = allFindingsList.filter(({ packageVulnerabilityDetails }) => ignoreList.includes(packageVulnerabilityDetails.vulnerabilityId));
 
