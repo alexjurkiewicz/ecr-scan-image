@@ -259,7 +259,7 @@ const main = async () => {
 
   const ignoredCounts = countIgnoredFindings(ignoredFindings)
   const findingsDetails = findingsList || []
-  const counts = findings.imageScanFindings.findingSeverityCounts
+  const counts = findings.imageScanFindings.findingSeverityCounts || {} // If no findings, default to empty object instead of undefined
   const critical = counts.CRITICAL || 0
   const high = counts.HIGH || 0
   const medium = counts.MEDIUM || 0
