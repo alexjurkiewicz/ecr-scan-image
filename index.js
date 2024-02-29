@@ -165,6 +165,26 @@ function isEnhancedScan(findings) {
   return 'enhancedFindings' in findings.imageScanFindings;
 }
 
+/**
+ * @param {AWS.ECR.ImageScanFinding[]} findings
+ * @returns {AWS.ECR.ImageScanFinding.EnhancedFindings[]}
+ * @description Get enhanced scan findings
+ * @throws {Error} If the scan is not enhanced
+ */
+function getEnhancedScanFindings(findings) {
+  // If there are no vulns found, ECR will respond with an empty array here: findings.imageScanFindings.findings
+  // This implies that the scan was a basic scan, but it's not, it's just empty so we need to check for empty findings as well.
+  if (findings.imageScanFindings.findings && findings.imageScanFindings.findings.length == 0){
+    return [];
+  }
+  
+  if (isEnhancedScan(findings)) {
+    return findings.imageScanFindings.enhancedFindings;
+  } else {
+    throw new Error(`Basic scan not supported. Please enable enhanced scanning in ECR.`)
+  }
+}
+
 const main = async () => {
   core.debug('Entering main')
   const repository = core.getInput('repository', { required: true })
@@ -195,11 +215,7 @@ const main = async () => {
   core.debug(`Findings: ${JSON.stringify(findings)}`)
   let findingsList = [];
   if (findings) {
-    if (isEnhancedScan(findings)) {
-      findingsList = findings.imageScanFindings.enhancedFindings;
-    } else {
-      throw new Error(`Basic scan not supported. Please enable enhanced scanning in ECR.`)
-    }
+    findingsList = getEnhancedScanFindings(findings);
     status = findings.imageScanStatus.status
     console.log(`A scan for this image was already requested, the scan's status is ${status}`)
     if (status == 'FAILED') {
