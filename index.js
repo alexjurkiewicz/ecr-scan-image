@@ -41,7 +41,7 @@ const getPaginatedResults = async (fn) => {
  * @returns {AWS.Request|AWS.AWSError|null} Results, Error or `null`.
  */
 const getFindings = async (ECR, repository, tag) => {
-  return ECR.describeImageScanFindings({
+  let findings = await ECR.describeImageScanFindings({
     imageId: {
       imageTag: tag
     },
@@ -50,7 +50,19 @@ const getFindings = async (ECR, repository, tag) => {
     (err) => {
       if (err.code === 'ScanNotFoundException') { return null }
       throw err
-    })
+  });
+  
+  // If there are no vulns found, ECR will respond with an empty array here: findings.imageScanFindings.findings
+  // This implies that the scan was a basic scan, but it's not, so we need to add an empty enhancedFindings array.
+  if (findings.imageScanFindings.findings && findings.imageScanFindings.findings.length == 0){
+    findings.imageScanFindings.enhancedFindings = [];
+  }
+  
+  if (!'enhancedFindings' in findings.imageScanFindings) {
+    throw new Error(`Basic scan not supported. Please enable enhanced scanning in ECR.`);
+  }
+
+  return findings;
 }
 
 /**
@@ -156,35 +168,6 @@ function countFailingVulnerabilities(failThreshold, foundCounts, ignoredCounts) 
     return count + foundCounts.informational - ignoredCounts.informational;
 }
 
-/**
- * @param {AWS.ECR.ImageScanFinding[]} findings
- * @returns {boolean}
- * @description Check if the scan is enhanced or not
- */
-function isEnhancedScan(findings) {
-  return 'enhancedFindings' in findings.imageScanFindings;
-}
-
-/**
- * @param {AWS.ECR.ImageScanFinding[]} findings
- * @returns {AWS.ECR.ImageScanFinding.EnhancedFindings[]}
- * @description Get enhanced scan findings
- * @throws {Error} If the scan is not enhanced
- */
-function getEnhancedScanFindings(findings) {
-  // If there are no vulns found, ECR will respond with an empty array here: findings.imageScanFindings.findings
-  // This implies that the scan was a basic scan, but it's not, it's just empty so we need to check for empty findings as well.
-  if (findings.imageScanFindings.findings && findings.imageScanFindings.findings.length == 0){
-    return [];
-  }
-  
-  if (isEnhancedScan(findings)) {
-    return findings.imageScanFindings.enhancedFindings;
-  } else {
-    throw new Error(`Basic scan not supported. Please enable enhanced scanning in ECR.`)
-  }
-}
-
 const main = async () => {
   core.debug('Entering main')
   const repository = core.getInput('repository', { required: true })
@@ -213,9 +196,7 @@ const main = async () => {
   let status = null
   let findings = await getFindings(ECR, repository, tag, !!ignoreList.length)
   core.debug(`Findings: ${JSON.stringify(findings)}`)
-  let findingsList = [];
   if (findings) {
-    findingsList = getEnhancedScanFindings(findings);
     status = findings.imageScanStatus.status
     console.log(`A scan for this image was already requested, the scan's status is ${status}`)
     if (status == 'FAILED') {
@@ -263,7 +244,7 @@ const main = async () => {
   }
 
   const ignoredCounts = countIgnoredFindings(ignoredFindings)
-  const findingsDetails = findingsList || []
+  const findingsDetails = findings.imageScanFindings.enhancedFindings || []
   const counts = findings.imageScanFindings.findingSeverityCounts || {} // If no findings, default to empty object instead of undefined
   const critical = counts.CRITICAL || 0
   const high = counts.HIGH || 0
