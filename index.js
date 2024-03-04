@@ -90,7 +90,7 @@ const getAllFindings = async (ECR, repository, tag) => {
 
     return {
       marker: findings.nextToken,
-      results: findings.imageScanFindings.findings || findings.imageScanFindings.enhancedFindings,
+      results: findings.imageScanFindings.enhancedFindings,
     };
   })
 };
