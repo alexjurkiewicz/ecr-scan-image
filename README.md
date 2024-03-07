@@ -2,12 +2,17 @@
 
 Scan an image uploaded to ECR and fail if vulnerabilities are found.
 
+## IMPORTANT UPDATE: Enhanced/Basic Scanning Support from v3.0.0
+
+As of version `3.0.0`, only enhanced scanning is supported. Basic scanning support has been removed from this version onwards. If you still need basic scanning support, please use version `^2.0.1`. To enable enhanced scanning, check out the [AWS documentation](https://docs.aws.amazon.com/AmazonECR/latest/userguide/image-scanning-enhanced.html).
+
+
 ## Quick Start
 
 ```yaml
       - name: Scan Docker image
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v1.7.1
+        uses: alexjurkiewicz/ecr-scan-image@v3.0.0
         with:
           repository: myorg/myimage
           tag: v1.2.3
