@@ -26,6 +26,7 @@ As of version `3.0.0`, only enhanced scanning is supported. Basic scanning suppo
 | repository | :white_check_mark:  | ECR repository, eg myorg/myimage |
 | tag    | :white_check_mark: | Image tag to scan |
 | fail_threshold | | Fail if any vulnerabilities equal to or over this severity level are detected. Valid values: `critical`, `high`, `medium`, `low`, `informational`. Default value is `high`. |
+| missedCVELogLevel | | Set the log level for missed CVEs. Valid values: `error`, `warn`. Determines whether a core.error or a core.warning is raised when the ignore list contains CVE IDs that were not found in the scan results. Default value is error. |
 | ignore_list | | List of CVE IDs to ignore.<br/>:warning: **Note**: The `ignore_list` can either be a multi-line string (like the example below) or a list (separated using commas or spaces) containing CVE IDs to be ignored. |
 
 ## Outputs
