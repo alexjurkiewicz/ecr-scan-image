@@ -13,6 +13,11 @@ inputs:
     default: medium
   ignore_list:
     description: List of CVE IDs to ignore in the vulnerability findings.
+  error_missed_ignores:
+    description: >
+      Set to "error" if you want to raise an error when CVEs in the ignore list are not found. Set to "warn" to raise a warning only, and prevent the workflow from failing when CVEs in the ignore list are not found.
+    required: false
+    default: error
 outputs:
   critical:
     description: Number of critical vulnerabilities detected.

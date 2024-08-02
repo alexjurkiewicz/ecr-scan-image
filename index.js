@@ -174,6 +174,15 @@ const main = async () => {
   const tag = core.getInput('tag', { required: true })
   const failThreshold = core.getInput('fail_threshold') || 'high'
   const ignoreList = parseIgnoreList(core.getInput('ignore_list'))
+  const missedCVELogLevel = core.getInput('missedCVELogLevel') || 'error'
+
+  //Validate missedCVELogLevel
+  if (
+    missedCVELogLevel !== 'warn' &&
+    missedCVELogLevel !== 'error'
+  ) {
+    throw new Error('missedCVELogLevel input value is invalid. It must be either "warn" or "error".')
+  }
 
   const proxyUrl = process.env.HTTPS_PROXY || process.env.https_proxy
   if (proxyUrl !== undefined) {
@@ -240,7 +249,11 @@ const main = async () => {
     const missedIgnores = ignoreList.filter(vulnerabilityId => !ignoredFindings.map(({ packageVulnerabilityDetails }) => packageVulnerabilityDetails.vulnerabilityId).includes(vulnerabilityId));
     console.log('The following CVEs were not found in the result set:');
     missedIgnores.forEach(miss => console.log(`  ${miss}`));
-    throw new Error(`Ignore list contains CVE IDs that were not returned in the findings result set. They may be invalid or no longer be current vulnerabilities.`);
+    if (missedCVELogLevel === 'error') {
+      throw new Error(`Ignore list contains CVE IDs that were not returned in the findings result set. They may be invalid or no longer be current vulnerabilities.`);
+    } else {
+      core.warning(`Ignore list contains CVE IDs that were not returned in the findings result set. They may be invalid or no longer be current vulnerabilities.`);
+    }  
   }
 
   const ignoredCounts = countIgnoredFindings(ignoredFindings)
