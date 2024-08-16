@@ -219,11 +219,11 @@ const main = async () => {
       },
       repositoryName: repository
     }).promise()
-    status = 'IN_PROGRESS'
+    status = 'PENDING'
   }
 
   let firstPoll = true
-  while (status === 'IN_PROGRESS') {
+  while (status === 'PENDING' || status === 'IN_PROGRESS') {
     if (!firstPoll) {
       await new Promise((resolve) => {
         setTimeout(resolve, 5000)
