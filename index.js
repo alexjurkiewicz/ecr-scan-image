@@ -38,13 +38,13 @@ const getPaginatedResults = async (fn) => {
  * @param {AWS.ECR} ECR
  * @param {string} repository
  * @param {string} tag
+ * @param {string} digest
  * @returns {AWS.Request|AWS.AWSError|null} Results, Error or `null`.
  */
-const getFindings = async (ECR, repository, tag) => {
+const getFindings = async (ECR, repository, tag, digest) => {
+  const imageId = getImageId(tag, digest);
   let findings = await ECR.describeImageScanFindings({
-    imageId: {
-      imageTag: tag
-    },
+    imageId,
     repositoryName: repository
   }).promise().catch(
     (err) => {
@@ -70,14 +70,14 @@ const getFindings = async (ECR, repository, tag) => {
  * @param {AWS.ECR} ECR
  * @param {string} repository
  * @param {string} tag
+ * @param {string} digest
  * @returns {AWS.ECR.ImageScanFinding[]|AWS.AWSError|null} Results, Error or `null`.
  */
-const getAllFindings = async (ECR, repository, tag) => {
+const getAllFindings = async (ECR, repository, tag, digest) => {
+  const imageId = getImageId(tag, digest);
   return await getPaginatedResults(async (NextMarker) => {
     const findings = await ECR.describeImageScanFindings({
-      imageId: {
-        imageTag: tag
-      },
+      imageId,
       maxResults: 1000, // Valid range: 1-1000, default: 100
       repositoryName: repository,
       nextToken: NextMarker
@@ -94,6 +94,17 @@ const getAllFindings = async (ECR, repository, tag) => {
     };
   })
 };
+
+const getImageId = (tag, digest) => {
+  let imageId = {};
+  if (tag) {
+    imageId.imageTag = tag;
+  }
+  if (digest) {
+    imageId.imageDigest = digest;
+  }
+  return imageId;
+}
 
 /**
  * Tally findings by severity.
@@ -171,10 +182,15 @@ function countFailingVulnerabilities(failThreshold, foundCounts, ignoredCounts) 
 const main = async () => {
   core.debug('Entering main')
   const repository = core.getInput('repository', { required: true })
-  const tag = core.getInput('tag', { required: true })
+  const tag = core.getInput('tag')
+  const digest = core.getInput('digest')
   const failThreshold = core.getInput('fail_threshold') || 'high'
   const ignoreList = parseIgnoreList(core.getInput('ignore_list'))
   const missedCVELogLevel = core.getInput('missedCVELogLevel') || 'error'
+
+  if (!tag && !digest) {
+    throw new Error('Either tag or digest must be provided.')
+  }
 
   //Validate missedCVELogLevel
   if (
@@ -198,12 +214,12 @@ const main = async () => {
   ) {
     throw new Error('fail_threshold input value is invalid')
   }
-  core.debug(`Repository:${repository}, Tag:${tag}, Ignore list:${ignoreList}`)
+  core.debug(`Repository:${repository}, Tag:${tag}, Digest:${digest}, Ignore list:${ignoreList}`)
   const ECR = new AWS.ECR()
 
   core.debug('Checking for existing findings')
   let status = null
-  let findings = await getFindings(ECR, repository, tag, !!ignoreList.length)
+  let findings = await getFindings(ECR, repository, tag, digest, !!ignoreList.length)
   core.debug(`Findings: ${JSON.stringify(findings)}`)
   if (findings) {
     status = findings.imageScanStatus.status
@@ -213,10 +229,9 @@ const main = async () => {
     }
   } else {
     console.log('Requesting image scan')
+    const imageId = getImageId(tag, digest);
     await ECR.startImageScan({
-      imageId: {
-        imageTag: tag
-      },
+      imageId,
       repositoryName: repository
     }).promise()
     status = 'PENDING'
@@ -230,7 +245,7 @@ const main = async () => {
       })
     }
     console.log('Polling ECR for image scan findings...')
-    findings = await getFindings(ECR, repository, tag)
+    findings = await getFindings(ECR, repository, tag, digest)
     status = findings.imageScanStatus.status
     core.debug(`Scan status: ${status}`)
     firstPoll = false
@@ -241,7 +256,7 @@ const main = async () => {
     throw new Error(`Unhandled scan status "${status}". API response: ${JSON.stringify(findings)}`)
   }
 
-  const allFindingsList = !!ignoreList.length ? await getAllFindings(ECR, repository, tag) : []; // only fetch all findings if we have an ignore list
+  const allFindingsList = !!ignoreList.length ? await getAllFindings(ECR, repository, tag, digest) : []; // only fetch all findings if we have an ignore list
   let ignoredFindings = [];
   ignoredFindings = allFindingsList.filter(({ packageVulnerabilityDetails }) => ignoreList.includes(packageVulnerabilityDetails.vulnerabilityId));
 

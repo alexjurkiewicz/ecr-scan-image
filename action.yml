@@ -5,8 +5,9 @@ inputs:
     description: ECR repository, eg myorg/myimage.
     required: true
   tag:
-    description: Image tag to scan.
-    required: true
+    description: Image tag to scan. Required if digest is not provided.
+  digest:
+    description: Image digest to scan. Required if tag is not provided.
   fail_threshold:
     description: >
       Fail if any vulnerabilities equal to or over this severity level are detected. Valid values: critical, high, medium, low, informational.

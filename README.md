@@ -12,7 +12,7 @@ As of version `3.0.0`, only enhanced scanning is supported. Basic scanning suppo
 ```yaml
       - name: Scan Docker image
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v3.0.0
+        uses: alexjurkiewicz/ecr-scan-image@v3.1.0
         with:
           repository: myorg/myimage
           tag: v1.2.3
@@ -89,10 +89,11 @@ jobs:
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$tag
       - name: Scan Docker image
         id: docker-scan
-        uses: alexjurkiewicz/ecr-scan-image@v1.7.1
+        uses: alexjurkiewicz/ecr-scan-image@v3.1.0
         with:
           repository: myorg/myimage
           tag: ${{ steps.docker-build.outputs.tag }}
+          # digest: ${{ steps.docker-build.outputs.digest }}
           # fail_threshold: medium
           # ignore_list: |
           #   CVE-2014-7654321
